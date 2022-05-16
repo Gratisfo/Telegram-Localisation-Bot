@@ -2,7 +2,7 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import gspread
 
-bot = telebot.TeleBot('5305696037:AAHC7xzuBuGgR5gDUpZ_qJXUxpx-mKKah6E')
+bot = telebot.TeleBot('TOKEN')
 gc = gspread.service_account("token.json")
 
 # Open a sheet from a spreadsheet in one go
@@ -71,53 +71,3 @@ bot.infinity_polling()
 
 bot.polling(non_stop=True)
 
-# @bot.message_handler(commands=['start'])
-# def start(message):
-#     mess = f'Hi! {message.from_user.first_name}, please choose the language you will translate into.'
-#     markup = types.InlineKeyboardMarkup()
-#     markup.row_width = 4
-#     markup.add(types.InlineKeyboardButton("Portuguese", callback_data = "por"),
-#                 types.InlineKeyboardButton("Spanish", callback_data = "esp"),
-#                 types.InlineKeyboardButton("Vietnamese", callback_data = "vie"),
-#                 types.InlineKeyboardButton("Turkish", callback_data = "tur"))
-#
-#     bot.send_message(message.chat.id, mess, reply_markup=markup)
-#
-
-# @bot.message_handler(func=lambda m: True)
-# def echo_all(message):
-# 	bot.reply_to(message, message)
-
-# @bot.message_handler()
-# def get_user_test(message):
-#     if message.text =="Hello!":
-#         bot.send_message(message.chat.id, 'Hi there!')
-#     elif message.text == "id":
-#         bot.send_message(message.chat.id, f'your id is {message.from_user.id}')
-#     else:
-#         bot.send_message(message.chat.id, 'I do not understand you')
-#
-# @bot.message_handler(commands=['test'])
-# def website(message):
-#     markup = types.InlineKeyboardMarkup()
-#     markup.add(types.InlineKeyboardButton("Visit Site", url='https://github.com'))
-#     bot.send_message(message.chat.id, 'Go to site', reply_markup=markup)
-#
-#
-#
-# @bot.message_handler(commands=['help'])
-# def website(message):
-#     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
-#     website = types.KeyboardButton('Website')
-#     start = types.KeyboardButton("Start")
-#     markup.add(website, start)
-#     bot.send_message(message.chat.id, 'Go to site', reply_markup=markup)
-
-
-# list_of_lists = wks_texts.get_all_values()
-# for_translation = len(list_of_lists)
-#
-# text_num = wks_analytics.acell('A2').value
-# print(text_num)
-# if for_translation > int(text_num):
-#     wks_analytics.update('A2', for_translation)
