@@ -1,73 +1,64 @@
 import telebot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
 import gspread
 
-bot = telebot.TeleBot('TOKEN')
+bot = telebot.TeleBot('5305696037:AAHC7xzuBuGgR5gDUpZ_qJXUxpx-mKKah6E')
 gc = gspread.service_account("token.json")
 
 # Open a sheet from a spreadsheet in one go
 wks_texts = gc.open("test bot").worksheet("texts")
 wks_analytics = gc.open("test bot").worksheet("analytics")
-wks_authors = gc.open("test bot").worksheet("authors ")
-
-
-def gen_markup():
-    markup = InlineKeyboardMarkup()
-    markup.row_width = 4
-    markup.add(InlineKeyboardButton("Portuguese", callback_data="C2"),
-               InlineKeyboardButton("Spanish", callback_data="B2"),
-               InlineKeyboardButton("Vietnamese", callback_data="D2"),
-               InlineKeyboardButton("Turkish", callback_data="A2"))
-    return markup
-
-
-def save_author_data(id, language):
-    wks_authors.update(language, id)
-
-
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    if call.data == "C2":
-        bot.answer_callback_query(call.id, "Answer is Portuguese")
-        language = call.data
-    elif call.data == "B2":
-        bot.answer_callback_query(call.id, "Answer is Spanish")
-        language = call.data
-    elif call.data == "D2":
-        bot.answer_callback_query(call.id, "Answer is Vietnamese")
-        language = call.data
-    elif call.data == "A2":
-        bot.answer_callback_query(call.id, "Answer is Turkish")
-        language = call.data
-    bot.send_message(call.message.chat.id, f'We save you choice language, please wait the new text')
-    save_author_data(call.message.chat.id, language)
-    bot.send_message(call.message.chat.id, f'Please wait a new text for translation')
-
+wks_authors = gc.open("test bot").worksheet("authors")
+wks_academy = gc.open("test bot").worksheet("academy")
+lang_col = {"Turkish": 'B', "Spanish": 'C', "Portuguese": 'D', "Vietnamese": 'E'}
 
 @bot.message_handler(commands=['start'])
 def message_handler(message):
     mess = f'Hi! {message.from_user.first_name}, please choose the language you will translate into.'
-    bot.send_message(message.chat.id, mess, reply_markup=gen_markup())
+    markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+    markup.row_width = 4
+    markup.add("Portuguese", "Spanish", "Vietnamese", "Turkish")
+    msg = bot.send_message(message.chat.id, mess, reply_markup=markup)
+    bot.register_next_step_handler(msg, save_author_data)
 
 
-@bot.message_handler(func=lambda m: True)
-def get_user_test(message):
-    id = message.chat.id
-    column = wks_authors.find(str(id)).col
-    row = wks_analytics.acell('A2').value
-    if column == 1:
-        col = 'B'
-    elif column == 2:
-        col = 'C'
-    elif column == 3:
-        col = 'D'
-    elif column == 4:
-        col = 'E'
+def save_author_data(message):
+    col = f'{lang_col[message.text]}2'
+    id_author = message.chat.id
+    wks_authors.update(col, id_author)
+    bot.send_message(message.chat.id, "Please wait the new texts")  # change phrase there
 
-    wks_texts.update(col + str(row), message.text)
+info = []
+
+@bot.callback_query_handler(func=lambda call: True)
+def test_callback(call):
+    ids = wks_authors.row_values(2)
+    ids_dict = {ids[3]: 'D', ids[2]: 'C', ids[4]: 'E', ids[1]: 'B'}
+    user_id = call.message.chat.id
+    row = str(call.data[-1])
+    col = ids_dict[str(user_id)]
+    info.insert(0, col + row)
+    if call.data[:4] == 'text':
+        msg = bot.send_message(user_id, 'Please send a translation of the text in reply message then it will be ready.')
+        bot.register_next_step_handler(msg, save_trans_text)
+    elif call.data[:4] == 'link':
+        msg = bot.send_message(user_id, 'Please send a link to Google doc with translation of the text in reply message then it will be ready.')
+        bot.register_next_step_handler(msg, save_trans_link)
 
 
-bot.infinity_polling()
+def save_trans_text(message):
+    translation = message.text
+    path = info[0]
+    print(translation, path)
+    wks_texts.update(path, translation)
+    bot.send_message(message.chat.id, 'Thank you very much!')
+
+def save_trans_link(message):
+    link = message.text
+    path = info[0]
+    print(link, path)
+    wks_academy.update(path, link)
+    bot.send_message(message.chat.id, 'Thank you very much!')
+
 
 bot.polling(non_stop=True)
-
