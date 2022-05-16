@@ -2,55 +2,53 @@ import gspread
 import schedule
 import time
 import telebot
+import logger
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-bot = telebot.TeleBot('TOKEN')
 
+bot = telebot.TeleBot('5305696037:AAHC7xzuBuGgR5gDUpZ_qJXUxpx-mKKah6E')
 
 gc = gspread.service_account("token.json")
 
 # Open a sheet from a spreadsheet in one go
 wks_text = gc.open("test bot").worksheet("texts")
-wks_authors = gc.open("test bot").worksheet("authors ")
-try:
-    id_esp = int(wks_authors.acell('B2').value)
-except:
-    id_esp = False
-
-try:
-    id_tur = int(wks_authors.acell('A2').value)
-except:
-    id_tur = False
-try:
-    id_por = int(wks_authors.acell('C2').value)
-except:
-    id_por = False
-try:
-    id_vn = int(wks_authors.acell('D2').value)
-except:
-    id_vn = False
+wks_authors = gc.open("test bot").worksheet("authors")
+wks_academy = gc.open("test bot").worksheet("academy")
 
 
-
-
-# # Format the header
 def get_stat():
-    list_of_lists = wks_text.get_all_values()
-    for_trans = len(list_of_lists)
-    print(for_trans)
+    texts_lists = wks_text.get_all_values()
+    text_todo_num = len(texts_lists)
     wks_anal = gc.open("test bot").worksheet("analytics")
     text_num = wks_anal.acell('A2').value
-    if for_trans > int(text_num):
-        wks_anal.update('A2', for_trans)
-        if id_esp:
-            bot.send_message(id_esp, wks_text.acell(f'A{for_trans}').value)
-        if id_tur:
-            bot.send_message(id_tur, wks_text.acell(f'A{for_trans}').value)
-        if id_por:
-            bot.send_message(id_por, wks_text.acell(f'A{for_trans}').value)
-        if id_vn:
-            bot.send_message(id_vn, wks_text.acell(f'A{for_trans}').value)
+    if text_todo_num > int(text_num):
+        wks_anal.update('A2', text_todo_num)
+        send_new_text(text_todo_num)
 
+    academy_list = wks_academy.get_all_values()
+    academy_todo_num = len(academy_list)
+    wks_anal = gc.open("test bot").worksheet("analytics")
+    academy_num = wks_anal.acell('F2').value
+    if academy_todo_num > int(academy_num):
+        print(academy_num, 'academy_num')
+        wks_anal.update('F2', academy_todo_num)
+        print('updated', wks_anal.acell('F2').value)
+        send_new_url(academy_todo_num)
 
+def send_new_url(row_id):
+    ids = wks_authors.row_values(2)
+    for id_author in ids:
+        if len(id_author) > 1:
+            markup = InlineKeyboardMarkup()
+            markup.add(InlineKeyboardButton("Send the link to Google doc", callback_data=f'link{row_id}'))
+            bot.send_message(int(id_author), wks_academy.acell(f'A{row_id}').value, reply_markup=markup)
+
+def send_new_text(row_id):
+    ids = wks_authors.row_values(2)
+    for id_author in ids:
+        if len(id_author) > 1:
+            markup = InlineKeyboardMarkup()
+            markup.add(InlineKeyboardButton("Send a translation", callback_data=f'text{row_id}'))
+            bot.send_message(int(id_author), wks_text.acell(f'A{row_id}').value, reply_markup=markup)
 
 
 def job():
@@ -59,10 +57,5 @@ def job():
         schedule.run_pending()
         time.sleep(1)
 
+
 job()
-
-
-
-
-
-
