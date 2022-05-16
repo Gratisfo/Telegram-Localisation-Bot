@@ -2,7 +2,6 @@ import gspread
 import schedule
 import time
 import telebot
-import logger
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 bot = telebot.TeleBot('5305696037:AAHC7xzuBuGgR5gDUpZ_qJXUxpx-mKKah6E')
@@ -33,6 +32,14 @@ def get_stat():
         wks_anal.update('F2', academy_todo_num)
         print('updated', wks_anal.acell('F2').value)
         send_new_url(academy_todo_num)
+
+    # if users haven sent any text
+    # for i in []:
+    #     if i == 0:
+    #         for idx in [1:]
+    #             send_new_url(idx)
+    #             send_new_text(idx):
+
 
 def send_new_url(row_id):
     ids = wks_authors.row_values(2)
