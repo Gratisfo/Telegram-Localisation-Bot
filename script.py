@@ -3,7 +3,7 @@ import schedule
 import time
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-bot = telebot.TeleBot('5305696037:AAHC7xzuBuGgR5gDUpZ_qJXUxpx-mKKah6E')
+bot = telebot.TeleBot('TOKEN')
 
 
 gc = gspread.service_account("token.json")
